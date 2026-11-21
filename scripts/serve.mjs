@@ -9,10 +9,10 @@
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
+import { createGzip } from "node:zlib";
 
 const ROOT = resolve("out");
 const PORT = Number(process.env.PORT ?? 4173);
-const config = JSON.parse(readFileSync("vercel.json", "utf8"));
 
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -29,7 +29,9 @@ const TYPES = {
 };
 
 // Vercel "source" patterns used here are simple: "/(.*)" and "/prefix/(.*)".
+// vercel.json is re-read on every request: `npm run build` rewrites the CSP hashes.
 function headersFor(pathname) {
+  const config = JSON.parse(readFileSync("vercel.json", "utf8"));
   const out = {};
   for (const rule of config.headers ?? []) {
     const re = new RegExp(`^${rule.source}$`);
@@ -54,6 +56,14 @@ createServer((req, res) => {
   const status = file ? 200 : 404;
   const target = file ?? join(ROOT, "404.html");
   const type = TYPES[extname(target)] ?? (target.endsWith("opengraph-image") ? "image/png" : "application/octet-stream");
-  res.writeHead(status, { "Content-Type": type, ...headersFor(pathname) });
+  const headers = { "Content-Type": type, ...headersFor(pathname) };
+  // Compress text like Vercel does, so local Lighthouse runs are realistic.
+  const compressible = /text|javascript|json|xml|svg/.test(type);
+  if (compressible && /\bgzip\b/.test(req.headers["accept-encoding"] ?? "")) {
+    res.writeHead(status, { ...headers, "Content-Encoding": "gzip", Vary: "Accept-Encoding" });
+    createReadStream(target).pipe(createGzip()).pipe(res);
+    return;
+  }
+  res.writeHead(status, headers);
   createReadStream(target).pipe(res);
 }).listen(PORT, () => console.log(`Preview: http://localhost:${PORT}`));
