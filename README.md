@@ -16,7 +16,7 @@ and Tailwind CSS, exported as plain HTML/CSS/JS and hosted on Vercel.
 ```bash
 npm install        # once
 npm run dev        # development server on http://localhost:3000
-npm run build      # static export to out/ + refresh the CSP hashes in vercel.json
+npm run build      # static export to out/, then strip the unused JavaScript (see below)
 npm run preview    # serve out/ on http://localhost:4173 with the same headers as Vercel
 npm run lint       # ESLint
 ```
@@ -33,7 +33,7 @@ app/icon.svg               favicon
 components/                one component per section, plus ui.tsx (shared bits) and icons.tsx
 components/ArchitectureDiagram.tsx   hand-drawn SVG of Project Nexus (no IPs or hostnames)
 public/                    static files served as-is (CV, screenshots)
-scripts/csp.mjs            computes the CSP script hashes (see below)
+scripts/postbuild.mjs      removes the unused JavaScript from out/ and checks the CSP (see below)
 scripts/serve.mjs          local preview server
 vercel.json                security and cache headers
 ```
@@ -65,20 +65,26 @@ git commit -am "Update CV" && git push
 Keep the same file name so the existing links keep working. Vercel serves static files with
 revalidation, so the new PDF is live as soon as the deploy finishes.
 
-## Content-Security-Policy
+## Zero JavaScript and Content-Security-Policy
 
-Next.js inlines a few small scripts (the React Server Components payload). Instead of allowing all inline
-scripts with `'unsafe-inline'`, the CSP in `vercel.json` lists the SHA-256 hash of each one.
-`scripts/csp.mjs` runs at the end of `npm run build`:
+Every section is rendered to HTML at build time and nothing on the page needs client-side code (the theme
+follows `prefers-color-scheme` in CSS). So `scripts/postbuild.mjs`, run at the end of `npm run build`,
+removes the React runtime that Next.js adds for hydration: the site ships as **pure HTML + CSS**.
+The JSON-LD block stays, because it is data and is never executed.
 
-- **locally** it recomputes the hashes from `out/*.html` and rewrites the CSP in `vercel.json`;
-- **on Vercel** (`VERCEL=1`) it only verifies them and **fails the build** if they differ, so a stale
-  policy can never reach production. If that happens: run `npm run build` locally, commit `vercel.json`, push.
+This allows the strictest policy, sent from `vercel.json`:
 
-`next.config.ts` pins `generateBuildId` so the inline scripts are identical between builds of the same
-source. Rule of thumb: **after changing content, run `npm run build` and commit `vercel.json` too.**
+```
+default-src 'none'; script-src 'none'; style-src 'self'; img-src 'self'; font-src 'self';
+connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+```
 
-The page is fully server-rendered HTML: even if JavaScript were blocked, every section would still display.
+Why not keep the scripts and allow them by hash? Next.js inline scripts are not byte-identical between a
+Windows and a Linux build, so hashes computed locally do not match Vercel's build. The post-build step
+fails the build if any executable script is left in the HTML or if the CSP stops forbidding scripts.
+
+**If you ever add interactivity** (a client component), the post-build step will strip it: you would need
+to drop the step and move to a nonce- or hash-based CSP generated on the build machine.
 
 ## Deploy (Vercel)
 
