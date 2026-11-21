@@ -1,0 +1,30 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next.js build output
+/.next/
+/out/
+/build
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+*.log
+
+# env files and secrets: never commit
+.env*
+*.key
+credenziali*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# private working notes (the brief for this site)
+PROMPT.md
