@@ -79,6 +79,9 @@ default-src 'none'; script-src 'none'; style-src 'self'; img-src 'self'; font-sr
 connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
 ```
 
+`connect-src 'self'` only exists so audit tools such as Lighthouse can fetch `robots.txt` from the page;
+with no scripts on the page, nothing else can use it.
+
 Why not keep the scripts and allow them by hash? Next.js inline scripts are not byte-identical between a
 Windows and a Linux build, so hashes computed locally do not match Vercel's build. The post-build step
 fails the build if any executable script is left in the HTML or if the CSP stops forbidding scripts.
