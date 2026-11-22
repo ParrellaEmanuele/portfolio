@@ -52,6 +52,12 @@ function resolveFile(pathname) {
 
 createServer((req, res) => {
   const { pathname } = new URL(req.url ?? "/", "http://localhost");
+  // Same as Vercel with "trailingSlash": false: /it/ → /it.
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    res.writeHead(308, { Location: pathname.replace(/\/+$/, "") });
+    res.end();
+    return;
+  }
   const file = resolveFile(pathname);
   const status = file ? 200 : 404;
   const target = file ?? join(ROOT, "404.html");

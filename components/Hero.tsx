@@ -1,8 +1,10 @@
-import { hero, site } from "@/content/site";
+import { site } from "@/content/shared";
+import type { Content } from "@/content/types";
 import { ArrowDown, Download, GitHub } from "./icons";
 import { ButtonLink, Container } from "./ui";
 
-export function Hero() {
+export function Hero({ c }: { c: Content }) {
+  const { hero } = c;
   return (
     <section aria-labelledby="hero-heading" className="py-16 sm:py-24">
       <Container className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
@@ -17,12 +19,12 @@ export function Hero() {
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted">{hero.context.join(" · ")}</p>
           <div className="mt-10 flex flex-wrap gap-3">
             <ButtonLink href="#nexus" variant="primary">
-              View projects
+              {hero.viewProjects}
               <ArrowDown />
             </ButtonLink>
             <ButtonLink href={site.cv} download>
               <Download />
-              Download CV
+              {hero.downloadCv}
             </ButtonLink>
             <ButtonLink href={site.github} variant="ghost" external>
               <GitHub />

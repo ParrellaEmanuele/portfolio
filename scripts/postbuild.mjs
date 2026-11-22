@@ -16,7 +16,7 @@
  *
  * Usage: node scripts/postbuild.mjs   (runs automatically in `npm run build`)
  */
-import { readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, rmSync, rmdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const OUT_DIR = "out";
@@ -58,6 +58,15 @@ for (const file of files) {
     deleted++;
   }
 }
+
+// Remove folders left empty (the per-route RSC payload folders).
+function removeEmptyDirs(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) removeEmptyDirs(join(dir, entry.name));
+  }
+  if (dir !== OUT_DIR && readdirSync(dir).length === 0) rmdirSync(dir);
+}
+removeEmptyDirs(OUT_DIR);
 
 // The deployed CSP must forbid scripts entirely.
 const config = JSON.parse(readFileSync("vercel.json", "utf8"));

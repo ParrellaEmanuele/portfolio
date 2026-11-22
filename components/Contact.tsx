@@ -1,8 +1,10 @@
-import { contact, site } from "@/content/site";
+import { site } from "@/content/shared";
+import type { Content } from "@/content/types";
 import { Download, GitHub, Mail } from "./icons";
 import { ButtonLink, Container } from "./ui";
 
-export function Contact() {
+export function Contact({ c }: { c: Content }) {
+  const contact = c.contact;
   return (
     <section id="contact" aria-labelledby="contact-heading" className="border-t border-line py-20 sm:py-24">
       <Container>

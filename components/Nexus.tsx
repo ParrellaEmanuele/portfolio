@@ -1,4 +1,5 @@
-import { nexus } from "@/content/site";
+import { modules, nexusStack, pausedModule } from "@/content/shared";
+import type { Content } from "@/content/types";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { Section, Tags } from "./ui";
 
@@ -20,7 +21,8 @@ function Numbered({ items }: { items: { title: string; text: string }[] }) {
   );
 }
 
-export function Nexus() {
+export function Nexus({ c }: { c: Content }) {
+  const { nexus } = c;
   return (
     <Section id="nexus" index="01" label={nexus.label} title={nexus.title} subtitle={nexus.subtitle} tone="feature">
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16">
@@ -28,7 +30,7 @@ export function Nexus() {
           <p className="font-mono text-xs text-muted">{nexus.period}</p>
           <p className="mt-3 text-lg leading-relaxed text-pretty">{nexus.intro}</p>
           <div className="mt-5">
-            <Tags items={nexus.stack} label="Nexus technology stack" />
+            <Tags items={nexusStack} label={nexus.stackLabel} />
           </div>
 
           <div className="mt-10">
@@ -54,7 +56,7 @@ export function Nexus() {
 
         <figure className="mx-auto w-full max-w-[360px] lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-2xl border border-line bg-bg p-4">
-            <ArchitectureDiagram />
+            <ArchitectureDiagram d={c.diagram} />
           </div>
           <figcaption className="mt-4 text-sm leading-relaxed text-muted">{nexus.privacyNote}</figcaption>
         </figure>
@@ -77,7 +79,9 @@ export function Nexus() {
 
       <h3 className="mt-20 text-2xl font-semibold tracking-tight">{nexus.modulesTitle}</h3>
       <ul className="mt-6 grid gap-4 md:grid-cols-3">
-        {nexus.modules.map((m) => (
+        {modules.map((m) => {
+          const t = nexus.modules[m.id];
+          return (
           <li key={m.name} className="flex flex-col rounded-xl border border-line bg-bg p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="font-semibold">{m.name}</h4>
@@ -86,20 +90,21 @@ export function Nexus() {
                 {nexus.statusComplete}
               </span>
             </div>
-            <p className="mt-3 text-lg leading-snug text-pretty">{m.use}</p>
-            <p className="mt-3 text-sm leading-relaxed text-muted">{m.text}</p>
-            {m.note ? <p className="mt-3 text-sm leading-relaxed text-muted italic">{m.note}</p> : null}
+            <p className="mt-3 text-lg leading-snug text-pretty">{t.use}</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted">{t.text}</p>
+            {t.note ? <p className="mt-3 text-sm leading-relaxed text-muted italic">{t.note}</p> : null}
             <div className="mt-auto pt-5">
-              <Tags items={m.stack} label={`${m.name} stack`} />
+              <Tags items={m.stack} label={`${m.name}: ${nexus.stackLabel}`} />
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
       <p className="mt-5 text-sm leading-relaxed text-muted">
         <span className="mr-2 rounded-full border border-dashed border-line px-2 py-0.5 font-mono text-[0.7rem]">
           {nexus.inProgress.label}
         </span>
-        <span className="font-medium text-fg">{nexus.inProgress.name}</span> {nexus.inProgress.text}
+        <span className="font-medium text-fg">{pausedModule.name}</span> {nexus.inProgress.text}
       </p>
     </Section>
   );

@@ -1,10 +1,10 @@
 # emanueleparrella.dev
 
-Personal portfolio of Emanuele Parrella: a single static page built with Next.js (App Router, TypeScript)
-and Tailwind CSS, exported as plain HTML/CSS/JS and hosted on Vercel.
+Personal portfolio of Emanuele Parrella: a one-page static site in English (`/`) and Italian (`/it`),
+built with Next.js (App Router, TypeScript) and Tailwind CSS, exported as plain HTML + CSS and hosted on Vercel.
 
 - No cookies, analytics, third-party fonts or scripts at runtime (fonts are self-hosted by `next/font`).
-- Strict security headers in [`vercel.json`](vercel.json), including a hash-based Content-Security-Policy.
+- Strict security headers in [`vercel.json`](vercel.json), including a Content-Security-Policy with `script-src 'none'`.
 - Light and dark theme from `prefers-color-scheme`, responsive from 360 px, `prefers-reduced-motion` respected.
 
 ## Requirements
@@ -25,14 +25,21 @@ npm run images     # convert screenshots in images/ to WebP in public/ (see belo
 ## Project structure
 
 ```
-content/site.ts            ALL texts and project data (edit this to change the site)
-app/layout.tsx             <html>, fonts, metadata (title, Open Graph, canonical), JSON-LD Person
-app/page.tsx               page = the sections in order
-app/opengraph-image.tsx    Open Graph image, rendered to a PNG at build time
-app/sitemap.ts, robots.ts  sitemap.xml and robots.txt
-app/icon.svg               favicon
+content/types.ts           the Content type: every translatable string, shared by both languages
+content/en.ts, it.ts       English and Italian copy (both typed as Content)
+content/shared.ts          language-independent data: URLs, contacts, screenshots, stacks
+app/(en)/layout.tsx        root layout of the English site: <html lang="en">, metadata
+app/(en)/page.tsx          English page (/)
+app/(it)/layout.tsx        root layout of the Italian site: <html lang="it">, metadata
+app/(it)/it/page.tsx       Italian page (/it)
+app/global-not-found.tsx   bilingual 404 (two root layouts need a global one)
+app/**/opengraph-image.png Open Graph image per language (+ .alt.txt)
+app/sitemap.ts, robots.ts  sitemap.xml (with hreflang alternates) and robots.txt
+app/fonts.ts, icon.svg     self-hosted fonts, favicon
+lib/seo.ts                 metadata per language: canonical, hreflang, og:locale, JSON-LD Person
+components/HomePage.tsx    the page = the sections in order, rendered once per language
 components/                one component per section, plus ui.tsx (shared bits) and icons.tsx
-components/ArchitectureDiagram.tsx   hand-drawn SVG of Project Nexus (no IPs or hostnames)
+components/ArchitectureDiagram.tsx   hand-drawn SVG of Project Nexus (no IPs or hostnames), labels translated
 public/                    static files served as-is (CV, screenshots)
 scripts/postbuild.mjs      removes the unused JavaScript from out/ and checks the CSP (see below)
 scripts/serve.mjs          local preview server
@@ -42,15 +49,20 @@ vercel.json                security and cache headers
 
 ## Updating content
 
-Everything visible on the page comes from [`content/site.ts`](content/site.ts): hero, Nexus modules,
-projects, client websites, skills, education and contact. Components never contain copy.
+Components never contain copy. Text lives in [`content/en.ts`](content/en.ts) and
+[`content/it.ts`](content/it.ts); data that does not change with the language (URLs, screenshots, stacks)
+lives in [`content/shared.ts`](content/shared.ts).
 
-- **Text:** edit the strings and run `npm run build` to check.
-- **A new client site:** add an object to `clientWork.sites` (`name`, `sector`, `url`). Check the URL
-  answers before publishing.
-- **LinkedIn:** set `site.linkedin` to the profile URL; the Contact button appears only when it is set.
+- **Text:** edit the string in **both** language files and run `npm run build`. Both files are typed as
+  `Content` (`content/types.ts`): a missing or misspelt key in either language fails the build.
+- **A new client site:** add it to `clientSites` in `shared.ts` (with a new id in `ClientSiteId`), then add
+  its sector in `work.sectors` in both language files (the build fails until you do). Check the URL answers.
+- **LinkedIn:** set `site.linkedin` in `shared.ts`; the Contact button appears only when it is set.
 - **GitHub wording:** `contact.githubNote` must stay true (today the only public repository is this site).
-- **A Nexus module status:** change `status` to `"complete"` or `"in-development"` and update `note`.
+- **Nexus modules:** finished ones are listed in `modules` (`shared.ts`) with text in `nexus.modules`; the
+  paused one is the single line `nexus.inProgress`.
+- **Translation style:** natural Italian, technical terms left in English where Italians use them
+  (homelab, reverse proxy, deploy). The CV exists only in English, so the Italian button says so.
 - **Screenshots:** see the next section.
 
 ### Adding screenshots
@@ -72,7 +84,8 @@ Without an image a card is a compact, text-only card (no placeholder). To add a 
 
 3. Run `npm run images`: it crops each image from the top to 16:10 and writes a 1200×750 WebP
    (quality 80) into `public/`. The originals in `images/` are not committed.
-4. In `content/`, uncomment the matching `image: "/work/....webp"` line, then `npm run build`.
+4. In `content/shared.ts`, uncomment the matching `image: "/work/....webp"` line, then `npm run build`.
+   One line activates the image in both languages; the alt text is translated automatically.
 
 The card then shows the screenshot in a light browser-window frame, with fixed size (no layout shift) and
 lazy loading. The shift-scheduling app never gets a screenshot: it contains real staff data.
@@ -113,6 +126,16 @@ fails the build if any executable script is left in the HTML or if the CSP stops
 
 **If you ever add interactivity** (a client component), the post-build step will strip it: you would need
 to drop the step and move to a nonce- or hash-based CSP generated on the build machine.
+
+## Languages and SEO
+
+- English at `/` (the CV links there), Italian at `/it`. Each has its own root layout, so `<html lang>` is right.
+- The header has a plain link to the other language (no JavaScript). Section ids are identical, so
+  `/#work` and `/it#work` are the same section.
+- Each page declares its canonical URL and `hreflang` alternates (`en`, `it`, `x-default` → English);
+  `sitemap.xml` lists both URLs with alternates. Title, description, `og:locale` and the Open Graph image
+  are per language.
+- One bilingual `404.html`: static hosting serves a single 404 page for every path.
 
 ## Deploy (Vercel)
 

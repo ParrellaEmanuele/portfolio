@@ -3,6 +3,7 @@
  * Colours come from the CSS theme tokens, so it follows light/dark mode.
  * Deliberately generic: no IPs, hostnames or other sensitive details.
  */
+import type { Content } from "@/content/types";
 
 type BoxProps = {
   x: number;
@@ -56,7 +57,7 @@ function Service({ x, y, name, stack, pill, dashed }: ServiceProps) {
   );
 }
 
-export function ArchitectureDiagram() {
+export function ArchitectureDiagram({ d }: { d: Content["diagram"] }) {
   return (
     <svg
       viewBox="0 0 360 652"
@@ -64,16 +65,8 @@ export function ArchitectureDiagram() {
       aria-labelledby="nexus-diagram-title nexus-diagram-desc"
       className="arch h-auto w-full"
     >
-      <title id="nexus-diagram-title">Project Nexus architecture</title>
-      <desc id="nexus-diagram-desc">
-        My devices reach the home server only through the Tailscale VPN; the public internet has no
-        inbound ports. On a Proxmox host, a Debian 13 VM runs Docker. Traefik is the single entry point,
-        terminating HTTPS and applying an IP allowlist. Behind it, on the internal nexus-net network, run
-        Fin-Engine, Transcriber, Quiz-Engine and Ads Automator (in development), each with its own
-        isolated storage. Every container runs as non-root with a read-only filesystem and no Linux
-        capabilities. Outbound only: Porkbun DNS points subdomains to private Tailscale IPs, and Let&apos;s
-        Encrypt issues certificates through the DNS-01 challenge.
-      </desc>
+      <title id="nexus-diagram-title">{d.title}</title>
+      <desc id="nexus-diagram-desc">{d.desc}</desc>
 
       <defs>
         <marker
@@ -91,29 +84,19 @@ export function ArchitectureDiagram() {
 
       {/* Row 1: who can and cannot reach the server */}
       <Box x={0} y={0} w={168} h={58} fill="var(--accent-soft)" />
-      <text x={14} y={25} className="t-title">
-        Your devices
-      </text>
-      <text x={14} y={43} className="t-small">
-        laptop · phone
-      </text>
+      <text x={14} y={25} className="t-title">{d.devices}</text>
+      <text x={14} y={43} className="t-small">{d.devicesSub}</text>
 
       <Box x={192} y={0} w={168} h={58} dashed />
-      <text x={206} y={25} className="t-title t-muted">
-        Public internet
-      </text>
-      <text x={206} y={43} className="t-small">
-        no inbound ports
-      </text>
+      <text x={206} y={25} className="t-title t-muted">{d.internet}</text>
+      <text x={206} y={43} className="t-small">{d.internetSub}</text>
 
       {/* Allowed path: Tailscale */}
       <line x1={84} y1={58} x2={84} y2={136} stroke="var(--accent)" strokeWidth={2} markerEnd="url(#arrow-accent)" />
       <text x={96} y={94} className="t-label t-accent">
         Tailscale VPN
       </text>
-      <text x={96} y={110} className="t-small">
-        WireGuard tunnel
-      </text>
+      <text x={96} y={110} className="t-small">{d.tunnelSub}</text>
 
       {/* Blocked path: internet */}
       <line x1={276} y1={58} x2={276} y2={120} stroke="var(--muted)" strokeWidth={1.25} strokeDasharray="3 4" />
@@ -121,18 +104,12 @@ export function ArchitectureDiagram() {
 
       {/* Host */}
       <Box x={0} y={140} w={360} h={422} fill="var(--surface)" />
-      <text x={14} y={161} className="t-mono t-muted">
-        PROXMOX VE · DEBIAN 13 VM · DOCKER
-      </text>
+      <text x={14} y={161} className="t-mono t-muted">{d.host}</text>
 
       {/* Traefik */}
       <Box x={14} y={172} w={332} h={64} />
-      <text x={28} y={197} className="t-title">
-        Traefik · the only open door
-      </text>
-      <text x={28} y={217} className="t-small">
-        HTTPS (Let&apos;s Encrypt) · IP allowlist → 403
-      </text>
+      <text x={28} y={197} className="t-title">{d.traefik}</text>
+      <text x={28} y={217} className="t-small">{d.traefikSub}</text>
       <line x1={180} y1={236} x2={180} y2={258} stroke="var(--accent)" strokeWidth={2} markerEnd="url(#arrow-accent)" />
 
       {/* Internal network with the services */}
@@ -147,45 +124,33 @@ export function ArchitectureDiagram() {
         strokeWidth={1}
         strokeDasharray="4 4"
       />
-      <text x={26} y={282} className="t-mono t-muted">
-        nexus-net · internal network
-      </text>
+      <text x={26} y={282} className="t-mono t-muted">{d.network}</text>
 
-      <Service x={26} y={292} name="Fin-Engine" stack="Next.js · FastAPI" pill="own PostgreSQL" />
-      <Service x={186} y={292} name="Transcriber" stack="FastAPI · FFmpeg" pill="Telegram bot ↗" />
-      <Service x={26} y={396} name="Quiz-Engine" stack="FastAPI · PWA" pill="own PostgreSQL" />
-      <Service x={186} y={396} name="Ads Automator" stack="in development" pill="encrypted SQLite" dashed />
+      <Service x={26} y={292} name="Fin-Engine" stack="Next.js · FastAPI" pill={d.ownPostgres} />
+      <Service x={186} y={292} name="Transcriber" stack="FastAPI · FFmpeg" pill={d.telegramBot} />
+      <Service x={26} y={396} name="Quiz-Engine" stack="FastAPI · PWA" pill={d.ownPostgres} />
+      <Service x={186} y={396} name="Ads Automator" stack={d.inDevelopment} pill={d.encryptedSqlite} dashed />
 
       {/* Hardening note */}
-      <text x={180} y={530} textAnchor="middle" className="t-small">
-        Every container: non-root user,
-      </text>
-      <text x={180} y={547} textAnchor="middle" className="t-small">
-        read-only filesystem, no capabilities
-      </text>
+      <text x={180} y={530} textAnchor="middle" className="t-small">{d.hardening[0]}</text>
+      <text x={180} y={547} textAnchor="middle" className="t-small">{d.hardening[1]}</text>
 
       {/* Outbound-only dependencies */}
       <line x1={84} y1={562} x2={84} y2={594} stroke="var(--muted)" strokeWidth={1.25} strokeDasharray="3 4" />
       <line x1={276} y1={562} x2={276} y2={594} stroke="var(--muted)" strokeWidth={1.25} strokeDasharray="3 4" />
-      <text x={180} y={583} textAnchor="middle" className="t-mono t-muted">
-        outbound only
-      </text>
+      <text x={180} y={583} textAnchor="middle" className="t-mono t-muted">{d.outbound}</text>
 
       <Box x={0} y={594} w={168} h={58} />
       <text x={14} y={619} className="t-title">
         Porkbun DNS
       </text>
-      <text x={14} y={637} className="t-small">
-        subdomains → private IPs
-      </text>
+      <text x={14} y={637} className="t-small">{d.dnsSub}</text>
 
       <Box x={192} y={594} w={168} h={58} />
       <text x={206} y={619} className="t-title">
         Let&apos;s Encrypt
       </text>
-      <text x={206} y={637} className="t-small">
-        certificates via DNS-01
-      </text>
+      <text x={206} y={637} className="t-small">{d.certsSub}</text>
     </svg>
   );
 }
