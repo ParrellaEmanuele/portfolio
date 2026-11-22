@@ -16,6 +16,10 @@ export const site = {
   email: "emanueleparrella9@gmail.com",
   github: "https://github.com/ParrellaEmanuele",
   githubHandle: "ParrellaEmanuele",
+  /** Source of this site (the only public repository for now). */
+  repo: "https://github.com/ParrellaEmanuele/portfolio",
+  /** Set to the profile URL to show a LinkedIn link in Contact; empty = hidden. */
+  linkedin: "",
   /** File in /public. Replace it to update the CV (see README). */
   cv: "/Emanuele-Parrella-CV.pdf",
 };
@@ -206,9 +210,28 @@ export type ClientSite = {
 };
 
 export const clientWork = {
-  intro:
-    "Since March 2025 I have built six websites for small businesses in Torino, together with hosting and DNS setup. On every site I set up Local SEO and Google Tag Manager tracking of calls and WhatsApp clicks, and ran a dedicated Google Ads campaign measured on those tracked leads.",
-  services: ["Development", "Local SEO", "Google Tag Manager", "Google Ads campaign"],
+  label: "Selected work",
+  title: "Websites built to bring in calls",
+  intro: [
+    "Six small businesses in Torino, most of them emergency repair services.",
+    "Each one got the same complete setup from me.",
+  ],
+  // What every business got, in plain words (from the CV).
+  gets: [
+    {
+      title: "A website people find nearby",
+      text: "Built and put online with hosting and domain, and set up for Local SEO so it shows up in local searches.",
+    },
+    {
+      title: "Every call counted",
+      text: "Google Tag Manager records each call and WhatsApp click from the site, so the owner sees what it brings in.",
+    },
+    {
+      title: "Its own Google Ads campaign",
+      text: "Search and Performance Max ads for that business alone, measured on those tracked calls and messages.",
+    },
+  ],
+  visit: "Visit site",
   sites: [
     {
       name: "EdilMatt",
@@ -280,6 +303,13 @@ export const education = [
 ];
 
 export const contact = {
+  label: "Contact",
   title: "Get in touch",
-  text: "Email is the best way to reach me. My code is on GitHub and the CV has the full picture.",
+  text: "Email is the best way to reach me, and the CV has the full picture.",
+  // Keep this true: today the only public repository is this site.
+  githubNote: "This site's source is on GitHub. Nexus is private for now; more repositories are coming.",
+  emailMe: "Email me",
+  repoButton: "This site on GitHub",
+  cvButton: "Download CV",
+  linkedinButton: "LinkedIn",
 };

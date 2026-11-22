@@ -48,6 +48,8 @@ projects, client websites, skills, education and contact. Components never conta
 - **Text:** edit the strings and run `npm run build` to check.
 - **A new client site:** add an object to `clientWork.sites` (`name`, `sector`, `url`). Check the URL
   answers before publishing.
+- **LinkedIn:** set `site.linkedin` to the profile URL; the Contact button appears only when it is set.
+- **GitHub wording:** `contact.githubNote` must stay true (today the only public repository is this site).
 - **A Nexus module status:** change `status` to `"complete"` or `"in-development"` and update `note`.
 - **Screenshots:** see the next section.
 

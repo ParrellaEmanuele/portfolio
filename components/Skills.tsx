@@ -4,28 +4,31 @@ import { Section } from "./ui";
 export function Skills() {
   return (
     <Section id="skills" index="04" label="Skills & education" title="What I work with">
-      <dl className="divide-y divide-line border-y border-line">
-        {skills.map((s) => (
-          <div key={s.group} className="grid gap-1 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
-            <dt className="font-mono text-xs uppercase leading-6 tracking-[0.12em] text-muted">{s.group}</dt>
-            <dd className="leading-6">{s.items.join(" · ")}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <h3 className="mt-16 text-lg font-semibold">Education</h3>
-      <ul className="mt-5 space-y-8">
-        {education.map((e) => (
-          <li key={e.school} className="grid gap-1 sm:grid-cols-[12rem_1fr] sm:gap-6">
-            <p className="font-mono text-xs leading-6 text-muted">{e.when}</p>
-            <div>
-              <p className="font-medium">{e.school}</p>
-              <p className="mt-0.5 text-muted">{e.degree}</p>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{e.detail}</p>
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:gap-16">
+        <dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+          {skills.map((s) => (
+            <div key={s.group}>
+              <dt className="font-mono text-xs uppercase tracking-[0.12em] text-muted">{s.group}</dt>
+              <dd className="mt-2 leading-relaxed">{s.items.join(" · ")}</dd>
             </div>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </dl>
+
+        <div>
+          <h3 className="font-mono text-xs uppercase tracking-[0.12em] text-muted">Education</h3>
+          <ul className="mt-2 space-y-6">
+            {education.map((e) => (
+              <li key={e.school}>
+                <p className="font-medium">
+                  {e.school} <span className="font-mono text-xs font-normal text-muted">· {e.when}</span>
+                </p>
+                <p className="mt-0.5 text-sm text-muted">{e.degree}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{e.detail}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </Section>
   );
 }
