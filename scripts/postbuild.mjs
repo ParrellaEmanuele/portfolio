@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Post-build step: ship the exported site as HTML + CSS plus ONE small script of ours.
+ * Post-build step: ship the exported site as HTML + CSS plus our two small scripts.
  *
  * Every section is rendered to static HTML at build time, so the React runtime that
  * Next.js adds for hydration is dead weight. Removing it:
@@ -8,11 +8,12 @@
  *   - removes ~600 KB of JavaScript and every inline script, which allows a strict,
  *     fixed CSP in vercel.json: `script-src 'self'`, no 'unsafe-inline', no hashes
  *     (inline-script hashes differ between Windows and Linux builds anyway);
- *   - leaves only /js/site.js (public/js/site.js): theme toggle, copy-email and the
- *     active menu item, all progressive enhancements.
+ *   - leaves only our files in public/js: theme.js (applies a saved theme before
+ *     paint) and site.js (deferred: theme toggle, copy-email, active menu item), all
+ *     progressive enhancements.
  *
  * Kept: JSON-LD blocks (type="application/ld+json": data, never executed) and the
- * external <script src="/js/site.js">. The build fails if anything else executable
+ * external <script src="/js/theme.js|site.js?v=…">. The build fails if anything else executable
  * (inline script, other src, on* handler) is left, or if the CSP gets weaker.
  *
  * Usage: node scripts/postbuild.mjs   (runs automatically in `npm run build`)
@@ -21,7 +22,8 @@ import { readFileSync, readdirSync, rmSync, rmdirSync, writeFileSync } from "nod
 import { join } from "node:path";
 
 const OUT_DIR = "out";
-const ALLOWED_SCRIPT = "/js/site.js";
+// Our own scripts (public/js), referenced with a content hash: /js/theme.js?v=… and /js/site.js?v=…
+const OWN_SCRIPT_SRC = /\bsrc="\/js\/(?:theme|site)\.js(?:\?v=[a-f0-9]+)?"/;
 
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -35,7 +37,7 @@ const SCRIPT_TAG = /<script\b([^>]*)>([\s\S]*?)<\/script>/g;
 const SCRIPT_PRELOAD = /<link\b[^>]*\b(?:as="script"|rel="modulepreload")[^>]*\/?>/g;
 
 const isJsonLd = (attrs) => attrs.includes('type="application/ld+json"');
-const isOwnScript = (attrs, body) => body.trim() === "" && attrs.includes(`src="${ALLOWED_SCRIPT}"`);
+const isOwnScript = (attrs, body) => body.trim() === "" && OWN_SCRIPT_SRC.test(attrs);
 const keep = (attrs, body) => isJsonLd(attrs) || isOwnScript(attrs, body);
 
 let removed = 0;

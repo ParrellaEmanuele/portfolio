@@ -1,7 +1,8 @@
 /*
- * The site's only script: small progressive enhancements. The page works fully without it.
- * Loaded from this origin (CSP: script-src 'self'), no inline code, no third parties,
- * nothing sent anywhere. Stores one value in localStorage: the chosen theme.
+ * Small progressive enhancements, loaded with `defer`. The page works fully without them.
+ * Served from this origin (CSP: script-src 'self'), no inline code, no third parties,
+ * nothing sent anywhere. Stores one value in localStorage: the chosen theme
+ * (applied before paint by theme.js).
  *
  *   1. Theme toggle: light/dark, remembered; otherwise the system setting applies.
  *   2. "Copy address" button next to the email.
@@ -11,18 +12,6 @@
   "use strict";
   var root = document.documentElement;
   var THEME_KEY = "theme";
-
-  function readTheme() {
-    try {
-      return localStorage.getItem(THEME_KEY);
-    } catch {
-      return null;
-    }
-  }
-
-  // Runs in <head>, before the page is painted, so a saved theme never flashes.
-  var saved = readTheme();
-  if (saved === "light" || saved === "dark") root.setAttribute("data-theme", saved);
 
   function currentTheme() {
     var explicit = root.getAttribute("data-theme");
@@ -106,9 +95,13 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function init() {
     setupThemeToggle();
     setupCopyButtons();
     setupScrollSpy();
-  });
+  }
+
+  // Deferred scripts run once the document is parsed; the guard covers other loading modes.
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();

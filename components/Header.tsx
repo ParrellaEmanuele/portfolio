@@ -25,7 +25,7 @@ function LanguageSwitch({ c }: { c: Content }) {
                 href={l.href}
                 hrefLang={l.locale}
                 lang={l.locale}
-                aria-label={l.name}
+                aria-label={`${l.code} (${l.name})`}
                 aria-current={current ? "page" : undefined}
                 className={`inline-flex min-h-7 min-w-8 items-center justify-center rounded px-2 transition-colors ${
                   current ? "bg-accent-soft font-medium text-accent" : "text-muted hover:text-fg"

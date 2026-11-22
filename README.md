@@ -103,17 +103,23 @@ git commit -am "Update CV" && git push
 Keep the same file name so the existing links keep working. Vercel serves static files with
 revalidation, so the new PDF is live as soon as the deploy finishes.
 
-## One small script and the Content-Security-Policy
+## Our two small scripts and the Content-Security-Policy
 
 Every section is rendered to HTML at build time, so `scripts/postbuild.mjs` (run at the end of
 `npm run build`) removes the React runtime that Next.js adds for hydration: about 600 KB of JavaScript and
 every inline script. What remains:
 
-- **`public/js/site.js`**, the site's only script (~3 KB, no dependencies), loaded from this origin:
-  theme toggle (remembered in `localStorage`), "copy address" next to the email, and the header menu
-  highlighting the section on screen. All of it is progressive enhancement: the buttons are `hidden`
-  in the HTML and the script reveals them, so without JavaScript the page is complete and nothing is broken.
-  It is loaded in `<head>` on purpose, so a saved theme is applied before the first paint.
+- **Our own scripts in `public/js/`** (no dependencies, served from this origin, rendered by
+  `components/SiteScripts.tsx`):
+  - `theme.js` (a few lines, `async`): applies a theme saved with the toggle, before the first paint in
+    practice, without blocking rendering;
+  - `site.js` (~3 KB, `defer`): theme toggle (remembered in `localStorage`), "copy address" next to the
+    email, and the header menu highlighting the section on screen.
+
+  All of it is progressive enhancement: the buttons are `hidden` in the HTML and the script reveals them,
+  so without JavaScript the page is complete and nothing is broken. Each URL carries a hash of the file
+  (`/js/site.js?v=…`, computed at build time), so `/js/*` is cached for a year and every change still
+  reaches visitors immediately.
 - **CSS-only interactions:** the Nexus diagram is explorable (hover, tap or Tab to a part: it is
   highlighted, the request path animates and its explanation appears, via `:has()`); blocks fade in on
   scroll with CSS scroll-driven animations; all motion is off with `prefers-reduced-motion`.
@@ -126,14 +132,14 @@ default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-sr
 connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
 ```
 
-The post-build step fails the build if anything executable other than `/js/site.js` is left in the HTML
+The post-build step fails the build if anything executable other than those two files is left in the HTML
 (inline script, another `src`, an `on*` handler) or if `script-src` is anything but `'self'`.
 
 `connect-src 'self'` exists so audit tools such as Lighthouse can fetch `robots.txt` from the page.
 
 Why strip Next's scripts instead of allowing them by hash? They are not byte-identical between a Windows and
 a Linux build, so hashes computed locally do not match Vercel's build. **To add more interactivity**, extend
-`public/js/site.js` (plain JavaScript, no inline handlers); a React client component would be stripped.
+`public/js/site.js` (plain JavaScript, no inline handlers; the version hash updates by itself); a React client component would be stripped.
 
 ## Languages and SEO
 
