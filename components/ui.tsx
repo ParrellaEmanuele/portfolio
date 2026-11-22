@@ -9,21 +9,36 @@ type SectionProps = {
   index: string;
   label: string;
   title: string;
+  /** Optional line under the title. */
+  subtitle?: string;
+  /** "feature" = tinted band and larger title, for the section that should dominate. */
+  tone?: "default" | "feature";
   children: ReactNode;
 };
 
 /** A page section with a numbered mono label and an h2. */
-export function Section({ id, index, label, title, children }: SectionProps) {
+export function Section({ id, index, label, title, subtitle, tone = "default", children }: SectionProps) {
   const headingId = `${id}-heading`;
+  const feature = tone === "feature";
   return (
-    <section id={id} aria-labelledby={headingId} className="border-t border-line py-20 sm:py-24">
+    <section
+      id={id}
+      aria-labelledby={headingId}
+      className={`border-t border-line ${feature ? "bg-surface py-20 sm:py-28" : "py-20 sm:py-24"}`}
+    >
       <Container>
         <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">
           <span className="text-accent">{index}</span> / {label}
         </p>
-        <h2 id={headingId} className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+        <h2
+          id={headingId}
+          className={`mt-3 font-semibold tracking-tight text-balance ${
+            feature ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"
+          }`}
+        >
           {title}
         </h2>
+        {subtitle ? <p className="mt-3 text-lg text-muted sm:text-xl">{subtitle}</p> : null}
         <div className="mt-10">{children}</div>
       </Container>
     </section>

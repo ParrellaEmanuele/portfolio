@@ -47,67 +47,111 @@ export const hero = {
   ],
 };
 
-export type ModuleStatus = "complete" | "in-development";
-
 export const nexus = {
+  label: "Featured project",
   title: "Project Nexus",
-  subtitle: "A self-hosted, Zero-Trust homelab",
+  subtitle: "My self-hosted, Zero-Trust homelab",
   period: "Oct 2026 – Present",
   intro:
-    "A Proxmox / Debian 13 home server where every service is a Docker container behind a Traefik reverse proxy. Nothing is exposed to the internet: all access goes through the Tailscale VPN.",
+    "A home server I built to learn DevSecOps hands-on. Every service runs in its own Docker container behind one reverse proxy, and nothing is reachable from the internet: I get in through a VPN.",
   privacyNote:
     "Nexus is private by design, so there is no public demo. The diagram shows how it is put together.",
   stack: ["Python", "FastAPI", "Next.js", "PostgreSQL", "Docker", "Traefik", "Proxmox", "Tailscale"],
-  layers: [
+  /** The three strongest points, always visible. */
+  keyPoints: [
     {
       title: "No open ports",
       text: "The router forwards nothing. Every request arrives through the Tailscale VPN; outside it, the services do not exist.",
     },
     {
       title: "Real HTTPS on private subdomains",
-      text: "Each service has a subdomain of my own domain. Porkbun DNS points to private Tailscale IPs and Let's Encrypt certificates are issued with the DNS-01 challenge, so no inbound port is ever needed.",
+      text: "Each service has a subdomain of my own domain with a valid Let's Encrypt certificate, issued without opening a single inbound port.",
+    },
+    {
+      title: "Hardened and tested",
+      text: "Every container runs as non-root on a read-only filesystem with no Linux capabilities, and 600+ pytest tests run before each deploy.",
+    },
+  ],
+  detailsSummary: "How it is secured, in detail",
+  /** Full list, inside a collapsible <details>. */
+  layers: [
+    {
+      title: "No open ports",
+      text: "The router forwards nothing and the server, SSH included, is reached only through Tailscale. Public DNS points to a private Tailscale IP, which leads nowhere outside the VPN.",
     },
     {
       title: "One way in",
       text: "Traefik is the only container that publishes ports. A shared IP allowlist answers 403 to anything outside the private network before a request reaches an app.",
     },
     {
-      title: "Hardened containers",
-      text: "Non-root user, read-only filesystem, all Linux capabilities dropped and no-new-privileges. Each database sits on a private network the proxy cannot see.",
+      title: "Certificates without inbound traffic",
+      text: "Let's Encrypt certificates are issued with the DNS-01 challenge through the Porkbun API, so HTTPS works on services nobody outside can reach.",
     },
     {
-      title: "Tested before every deploy",
-      text: "600+ pytest tests across the services, including checks on the Docker files, run before each deploy. Secrets never enter Git.",
+      title: "Isolated databases",
+      text: "Each service has its own database on a private network of its stack: the proxy cannot see it.",
+    },
+    {
+      title: "Hardened containers",
+      text: "Non-root user, read-only filesystem, all Linux capabilities dropped and no-new-privileges; writes only to dedicated volumes and a size-limited tmpfs.",
+    },
+    {
+      title: "Outbound-only bot",
+      text: "The Telegram bot uses long polling: it calls Telegram, so no port is open for it, and it answers only authorised user IDs.",
+    },
+    {
+      title: "Secrets out of Git, tests before deploy",
+      text: "Only .env.example files are committed and each container gets only the variables it needs. 600+ pytest tests, including checks on the Docker files, run before every deploy.",
     },
   ],
+  decisionsTitle: "Engineering decisions",
+  decisions: [
+    {
+      choice: "DNS-01 certificates instead of opening ports 80 and 443",
+      why: "Let's Encrypt checks a DNS record set through the Porkbun API, so private services get valid HTTPS without ever being reachable from outside.",
+    },
+    {
+      choice: "The shared IP allowlist lives in Traefik's file provider, not in container labels",
+      why: "A middleware defined in labels exists only while Traefik re-reads that container; when it does not, every router using it fails with a 404. A watched file loads on its own and applies changes instantly.",
+    },
+    {
+      choice: "Exact versions (==) for every Python dependency",
+      why: "Production runs exactly what passed the tests: no surprise upgrade, and no package published yesterday slipping into a build.",
+    },
+    {
+      choice: "Two REST calls with httpx instead of the official google-ads library",
+      why: "The library brings gRPC and Protobuf, tens of megabytes of native code, for what are two read-only endpoints.",
+    },
+  ],
+  modulesTitle: "Modules",
+  statusComplete: "Complete",
   modules: [
     {
       name: "Fin-Engine",
-      status: "complete" as ModuleStatus,
-      text: "Finance and time-ROI tracker: projects, a ledger with recurring entries and time tracking, with KPIs such as net profit, burn rate and hourly ROI computed in SQL.",
+      use: "Tells me how much each hour spent on a project actually earns, net of costs.",
+      text: "Projects, a ledger with recurring entries and time tracking, with KPIs such as net profit, burn rate and hourly ROI computed in SQL.",
       note: "Real data from mid-December 2026; a news section fed by the News Aggregator is planned.",
       stack: ["FastAPI", "PostgreSQL", "Next.js"],
     },
     {
       name: "Transcriber",
-      status: "complete" as ModuleStatus,
-      text: "Audio-to-text service used from a web UI and a Telegram bot. Long recordings are split with FFmpeg; on errors it retries, then fails over to a backup provider and resumes from the failed chunk.",
+      use: "I send a voice note on Telegram and get the text back.",
+      text: "Also has a web UI and an API. Long recordings are split with FFmpeg; on errors it retries, then fails over to a backup provider and resumes from the failed chunk.",
       stack: ["FastAPI", "FFmpeg", "Groq Whisper"],
     },
     {
       name: "Quiz-Engine",
-      status: "complete" as ModuleStatus,
-      text: "Study PWA with AI-generated quizzes and worked exercises, spaced repetition with Leitner boxes and statistics. Works with any course without code changes.",
+      use: "I study for my courses with AI-generated quizzes and spaced repetition.",
+      text: "An installable web app with multiple-choice questions, worked exercises, Leitner boxes and statistics. Works with any course without code changes.",
       stack: ["FastAPI", "PostgreSQL", "PWA"],
     },
-    {
-      name: "Ads Automator",
-      status: "in-development" as ModuleStatus,
-      text: "Reads each freelance client's Google Ads metrics through OAuth2, one independent account per client, with refresh tokens encrypted at rest.",
-      note: "Paused while waiting for Basic access to the Google Ads API.",
-      stack: ["FastAPI", "OAuth2", "SQLite"],
-    },
   ],
+  /** Paused module: one line, so it does not weigh like the finished ones. */
+  inProgress: {
+    label: "In progress",
+    name: "Ads Automator",
+    text: "reads each freelance client's Google Ads metrics through OAuth2. Paused while waiting for Basic access to the Google Ads API.",
+  },
 };
 
 export type Project = {
