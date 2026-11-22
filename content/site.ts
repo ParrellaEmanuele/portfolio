@@ -9,9 +9,9 @@
 export const site = {
   url: "https://emanueleparrella.dev",
   name: "Emanuele Parrella",
-  title: "Emanuele Parrella · Self-hosted systems and web products",
+  title: "Emanuele Parrella · Self-hosted infrastructure and web apps",
   description:
-    "Management Engineering student at Politecnico di Torino who builds self-hosted systems and web products: a Zero-Trust homelab, a shift planner in production and websites for local businesses.",
+    "I build self-hosted infrastructure and web apps: a Zero-Trust homelab, a shift planner in production at a care home and websites for local businesses in Torino.",
   location: "Torino, Italy",
   email: "emanueleparrella9@gmail.com",
   github: "https://github.com/ParrellaEmanuele",
@@ -29,11 +29,22 @@ export const nav = [
 ];
 
 export const hero = {
-  kicker: "Management Engineering · Politecnico di Torino",
+  kicker: "Torino, Italy",
   tagline:
-    "I study Management Engineering at Politecnico di Torino and build self-hosted systems and web products.",
-  detail:
-    "B.Sc. expected in 2027, with an M.Sc. in Software Engineering planned next. Based in Torino.",
+    "I build self-hosted infrastructure and web apps: from a Zero-Trust homelab to a shift planner in production at a care home.",
+  context: [
+    "Management Engineering student at Politecnico di Torino",
+    "B.Sc. expected 2027",
+    "M.Sc. in Software Engineering planned",
+  ],
+  glanceTitle: "At a glance",
+  // Every figure comes from the CV.
+  glance: [
+    { value: "6", label: "client websites built and live" },
+    { value: "600+", label: "automated tests in Project Nexus" },
+    { value: "0", label: "ports open to the internet at home" },
+    { value: "1", label: "app in production at a care home" },
+  ],
 };
 
 export type ModuleStatus = "complete" | "in-development";

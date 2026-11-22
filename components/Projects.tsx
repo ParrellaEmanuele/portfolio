@@ -3,7 +3,7 @@ import { Screenshot, Section, Tags } from "./ui";
 
 export function Projects() {
   return (
-    <Section id="projects" index="02" label="Other projects" title="Built for real users">
+    <Section id="projects" index="02" label="Other projects" title="A production app and a university project">
       <ul className="grid gap-6 md:grid-cols-2">
         {projects.map((p) => (
           <li key={p.name} className="flex flex-col rounded-xl border border-line p-5 sm:p-6">
