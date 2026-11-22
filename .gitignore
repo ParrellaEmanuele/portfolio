@@ -27,4 +27,7 @@ credenziali*
 next-env.d.ts
 
 # private working notes (the brief for this site)
-PROMPT.md
+PROMPT*.md
+
+# screenshot originals (converted by npm run images into public/)
+/images/

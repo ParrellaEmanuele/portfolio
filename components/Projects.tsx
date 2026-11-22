@@ -1,6 +1,5 @@
-import NextImage from "next/image";
 import { projects } from "@/content/site";
-import { Placeholder, Section, Tags } from "./ui";
+import { Screenshot, Section, Tags } from "./ui";
 
 export function Projects() {
   return (
@@ -9,19 +8,11 @@ export function Projects() {
         {projects.map((p) => (
           <li key={p.name} className="flex flex-col rounded-xl border border-line p-5 sm:p-6">
             {p.image ? (
-              <NextImage
-                src={p.image}
-                alt={p.imageAlt ?? p.name}
-                width={1600}
-                height={1000}
-                className="aspect-[16/10] rounded-lg border border-line object-cover object-top"
-              />
-            ) : p.note ? (
-              <Placeholder caption="Private tool · no screenshots" locked />
-            ) : (
-              <Placeholder caption="Screenshot coming soon" />
-            )}
-            <div className="mt-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <div className="mb-6">
+                <Screenshot src={p.image} alt={p.imageAlt ?? p.name} />
+              </div>
+            ) : null}
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <h3 className="text-xl font-semibold tracking-tight">{p.name}</h3>
               <span className="font-mono text-xs text-muted">{p.period}</span>
             </div>

@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Image as ImageIcon, Lock } from "./icons";
 
 export function Container({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`mx-auto w-full max-w-5xl px-4 sm:px-6 ${className}`}>{children}</div>;
@@ -72,35 +71,33 @@ export function ButtonLink({ href, children, variant = "secondary", download, ex
   );
 }
 
+/** Screenshot size: every image is exported at this size by `npm run images`. */
+export const SHOT = { width: 1200, height: 750 } as const;
+
 /**
- * Elegant stand-in for a screenshot that has not been provided yet.
- * Looks like an empty browser frame, so it never passes for a real capture.
+ * A real screenshot in a discreet browser-window frame.
+ * Fixed 16:10 box with explicit width/height (no layout shift), lazy-loaded.
+ * Plain <img> on purpose: next/image adds an inline style attribute, which the
+ * CSP (style-src 'self') would block.
  */
-export function Placeholder({
-  caption,
-  locked = false,
-  aspect = "aspect-[16/10]",
-}: {
-  caption: string;
-  locked?: boolean;
-  aspect?: string;
-}) {
-  const Icon = locked ? Lock : ImageIcon;
+export function Screenshot({ src, alt }: { src: string; alt: string }) {
   return (
-    <div
-      className={`${aspect} flex flex-col overflow-hidden rounded-lg border border-line bg-surface`}
-      role="img"
-      aria-label={caption}
-    >
+    <div className="overflow-hidden rounded-lg border border-line bg-surface">
       <div className="flex items-center gap-1.5 border-b border-line px-3 py-2" aria-hidden>
         <span className="size-2 rounded-full bg-line" />
         <span className="size-2 rounded-full bg-line" />
         <span className="size-2 rounded-full bg-line" />
       </div>
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center" aria-hidden>
-        <Icon className="size-5 text-muted" />
-        <span className="font-mono text-[0.75rem] text-muted">{caption}</span>
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element -- see the comment above */}
+      <img
+        src={src}
+        alt={alt}
+        width={SHOT.width}
+        height={SHOT.height}
+        loading="lazy"
+        decoding="async"
+        className="block aspect-[16/10] h-auto w-full object-cover object-top"
+      />
     </div>
   );
 }

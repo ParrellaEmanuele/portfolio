@@ -107,7 +107,10 @@ export type Project = {
   built: string;
   stack: string[];
   note?: string;
-  /** Optional screenshot in /public/projects (e.g. "/projects/shelter.webp"). */
+  /**
+   * Optional screenshot, 1200×750 WebP made by `npm run images`.
+   * No image = compact text-only card.
+   */
   image?: string;
   imageAlt?: string;
 };
@@ -123,6 +126,7 @@ export const projects: Project[] = [
       "A password-protected monthly planner: shifts and absences in a few clicks, an automatic rest day after every night shift, holiday rotation history, automatic hour totals with manual overrides, Excel-ready CSV export and database backups.",
     stack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Vercel"],
     note: "It holds real staff data, so it stays private: no screenshots or demo.",
+    // Never add an image here: the app contains real staff data.
   },
   {
     name: "Animal shelter platform",
@@ -133,6 +137,7 @@ export const projects: Project[] = [
     built:
       "A PHP JSON API, JavaScript validation on every form and a React gallery with search and sorting. Security: password hashing, CSRF tokens, prepared statements, session-fixation protection and locks against double bookings.",
     stack: ["PHP", "MySQL", "JavaScript", "React"],
+    // image: "/projects/animal-shelter.webp",
     imageAlt: "Animal shelter platform, cat gallery page",
   },
 ];
@@ -141,7 +146,7 @@ export type ClientSite = {
   name: string;
   sector: string;
   url: string;
-  /** Optional screenshot in /public/work (e.g. "/work/l3k-service.webp"). */
+  /** Optional screenshot, 1200×750 WebP made by `npm run images`. */
   image?: string;
 };
 
@@ -154,31 +159,37 @@ export const clientWork = {
       name: "EdilMatt",
       sector: "Emergency home repairs: plumbing, locks, electrical, glazing",
       url: "https://www.prontointerventoedilmatt.it/",
+      // image: "/work/edilmatt.webp",
     },
     {
       name: "Rapid Fabbro",
       sector: "24-hour locksmith",
       url: "https://www.fabbrotorino.cloud/",
+      // image: "/work/rapid-fabbro.webp",
     },
     {
       name: "Fabbro Spadino",
       sector: "Locksmith",
       url: "https://www.fabbrotorinospadino.cloud/",
+      // image: "/work/fabbro-spadino.webp",
     },
     {
       name: "Express Torino",
       sector: "Emergency repairs for shops and businesses",
       url: "https://www.expresstorinoprontointervento.it/",
+      // image: "/work/express-torino.webp",
     },
     {
       name: "L3K Service",
       sector: "Emergency home repairs",
       url: "https://www.l3kservice.it/",
+      // image: "/work/l3k-service.webp",
     },
     {
       name: "Pronto Intervento Idraulico Torino",
       sector: "Plumbing",
       url: "https://idraulicotorinomadonnadicampagna.it/",
+      // image: "/work/idraulico-torino.webp",
     },
   ] as ClientSite[],
 };

@@ -46,25 +46,6 @@ export function Mail({ className = "size-4" }: IconProps) {
   );
 }
 
-export function Lock({ className = "size-4" }: IconProps) {
-  return (
-    <svg {...base} className={className}>
-      <rect x="5" y="11" width="14" height="9" rx="2" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
-
-export function Image({ className = "size-4" }: IconProps) {
-  return (
-    <svg {...base} className={className}>
-      <rect x="3" y="4" width="18" height="16" rx="2" />
-      <circle cx="9" cy="10" r="1.75" />
-      <path d="m4 18 5-5 4 4 3-3 4 4" />
-    </svg>
-  );
-}
-
 export function GitHub({ className = "size-4" }: IconProps) {
   return (
     <svg aria-hidden focusable={false} viewBox="0 0 24 24" fill="currentColor" className={className}>

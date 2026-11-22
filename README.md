@@ -19,6 +19,7 @@ npm run dev        # development server on http://localhost:3000
 npm run build      # static export to out/, then strip the unused JavaScript (see below)
 npm run preview    # serve out/ on http://localhost:4173 with the same headers as Vercel
 npm run lint       # ESLint
+npm run images     # convert screenshots in images/ to WebP in public/ (see below)
 ```
 
 ## Project structure
@@ -35,6 +36,7 @@ components/ArchitectureDiagram.tsx   hand-drawn SVG of Project Nexus (no IPs or 
 public/                    static files served as-is (CV, screenshots)
 scripts/postbuild.mjs      removes the unused JavaScript from out/ and checks the CSP (see below)
 scripts/serve.mjs          local preview server
+scripts/images.mjs         screenshot conversion (sharp)
 vercel.json                security and cache headers
 ```
 
@@ -47,10 +49,31 @@ projects, client websites, skills, education and contact. Components never conta
 - **A new client site:** add an object to `clientWork.sites` (`name`, `sector`, `url`). Check the URL
   answers before publishing.
 - **A Nexus module status:** change `status` to `"complete"` or `"in-development"` and update `note`.
-- **Screenshots:** until an image is set, each card shows a neutral placeholder. To add one:
-  1. save a 16:10 image (1600×1000 recommended, WebP or PNG) in `public/work/` (client sites) or
-     `public/projects/` (projects), e.g. `public/work/l3k-service.webp`;
-  2. set `image: "/work/l3k-service.webp"` on that entry in `content/site.ts`.
+- **Screenshots:** see the next section.
+
+### Adding screenshots
+
+Without an image a card is a compact, text-only card (no placeholder). To add a screenshot:
+
+1. Take a desktop screenshot of the page (at least 1200 px wide; a 1440×900 browser window is ideal).
+2. Save it as PNG or JPG with **exactly** this name:
+
+   | Card | Source file | Becomes |
+   |---|---|---|
+   | EdilMatt | `images/work/edilmatt.png` | `public/work/edilmatt.webp` |
+   | Rapid Fabbro | `images/work/rapid-fabbro.png` | `public/work/rapid-fabbro.webp` |
+   | Fabbro Spadino | `images/work/fabbro-spadino.png` | `public/work/fabbro-spadino.webp` |
+   | Express Torino | `images/work/express-torino.png` | `public/work/express-torino.webp` |
+   | L3K Service | `images/work/l3k-service.png` | `public/work/l3k-service.webp` |
+   | Pronto Intervento Idraulico Torino | `images/work/idraulico-torino.png` | `public/work/idraulico-torino.webp` |
+   | Animal shelter platform | `images/projects/animal-shelter.png` | `public/projects/animal-shelter.webp` |
+
+3. Run `npm run images`: it crops each image from the top to 16:10 and writes a 1200×750 WebP
+   (quality 80) into `public/`. The originals in `images/` are not committed.
+4. In `content/`, uncomment the matching `image: "/work/....webp"` line, then `npm run build`.
+
+The card then shows the screenshot in a light browser-window frame, with fixed size (no layout shift) and
+lazy loading. The shift-scheduling app never gets a screenshot: it contains real staff data.
 
 ### Updating the CV
 
