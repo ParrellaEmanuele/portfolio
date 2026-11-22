@@ -252,7 +252,7 @@ export const en: Content = {
         degree: "B.Sc. in Management Engineering (L-8); planned M.Sc. in Software Engineering",
         when: "Expected 2027",
         detail:
-          "Relevant coursework: Computer Science in Python (30 cum laude), Object-Oriented Programming in Java (29/30), Operations Research (28/30), Databases, Web Applications, Computer Networks.",
+          "Relevant coursework: Computer Science in Python (30 cum laude), Object-Oriented Programming in Java (29/30), Operations Research (28/30), Databases, Web Applications, Computer Networks (SDN, P4).",
       },
       {
         school: "ITIS Galileo Galilei, Imperia",
