@@ -1,5 +1,5 @@
 import { modules, nexusStack, pausedModule } from "@/content/shared";
-import type { Content } from "@/content/types";
+import type { Content, DiagramNode } from "@/content/types";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { Section, Tags } from "./ui";
 
@@ -54,18 +54,31 @@ export function Nexus({ c }: { c: Content }) {
           </details>
         </div>
 
-        <figure className="mx-auto w-full max-w-[360px] lg:sticky lg:top-24 lg:self-start">
+        <figure className="arch-figure mx-auto w-full max-w-[360px] lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-2xl border border-line bg-bg p-4">
             <ArchitectureDiagram d={c.diagram} />
           </div>
-          <figcaption className="mt-4 text-sm leading-relaxed text-muted">{nexus.privacyNote}</figcaption>
+          <figcaption className="mt-4 text-sm leading-relaxed text-muted">
+            {/* Explanations swapped by CSS when a part of the diagram is hovered, tapped or focused. */}
+            <div className="min-h-[4.5rem] rounded-lg border border-line bg-bg px-4 py-3">
+              <p className="node-cap" data-for="default">
+                {c.diagram.hint}
+              </p>
+              {(Object.keys(c.diagram.nodes) as DiagramNode[]).map((id) => (
+                <p key={id} className="node-cap text-fg" data-for={id} aria-hidden="true">
+                  {c.diagram.nodes[id]}
+                </p>
+              ))}
+            </div>
+            <p className="mt-4">{nexus.privacyNote}</p>
+          </figcaption>
         </figure>
       </div>
 
       <h3 className="mt-20 text-2xl font-semibold tracking-tight">{nexus.decisionsTitle}</h3>
       <ul className="mt-6 grid gap-x-10 gap-y-8 md:grid-cols-2">
         {nexus.decisions.map((d) => (
-          <li key={d.choice} className="border-l-2 border-accent pl-5">
+          <li key={d.choice} className="reveal border-l-2 border-accent pl-5">
             <p className="font-medium leading-snug">{d.choice}</p>
             <p className="mt-2 leading-relaxed text-muted">
               <span aria-hidden className="mr-1.5 font-mono text-accent">
@@ -82,7 +95,7 @@ export function Nexus({ c }: { c: Content }) {
         {modules.map((m) => {
           const t = nexus.modules[m.id];
           return (
-          <li key={m.name} className="flex flex-col rounded-xl border border-line bg-bg p-5 sm:p-6">
+          <li key={m.name} className="card reveal flex flex-col rounded-xl border border-line bg-bg p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="font-semibold">{m.name}</h4>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[0.7rem] text-accent">

@@ -1,6 +1,6 @@
 import { site } from "@/content/shared";
 import type { Content } from "@/content/types";
-import { Download, GitHub, Mail } from "./icons";
+import { Copy, Download, GitHub, Mail } from "./icons";
 import { ButtonLink, Container } from "./ui";
 
 export function Contact({ c }: { c: Content }) {
@@ -16,12 +16,27 @@ export function Contact({ c }: { c: Content }) {
             {contact.title}
           </h2>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted">{contact.text}</p>
-          <a
-            href={`mailto:${site.email}`}
-            className="mt-8 inline-block text-xl font-medium break-all text-accent underline decoration-accent/30 underline-offset-[6px] transition-colors hover:decoration-accent sm:text-3xl"
-          >
-            {site.email}
-          </a>
+          <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
+            <a
+              href={`mailto:${site.email}`}
+              className="text-xl font-medium break-all text-accent underline decoration-accent/30 underline-offset-[6px] transition-colors hover:decoration-accent sm:text-3xl"
+            >
+              {site.email}
+            </a>
+            {/* Hidden without JavaScript; /js/site.js reveals it when the Clipboard API exists. */}
+            <button
+              type="button"
+              hidden
+              data-copy={site.email}
+              data-done={contact.copied}
+              aria-describedby="copy-status"
+              className="copy-button inline-flex min-h-9 items-center gap-1.5 rounded-md border border-line bg-bg px-3 font-mono text-[0.75rem] text-muted transition-colors hover:text-fg"
+            >
+              <Copy className="size-3.5" />
+              <span data-label>{contact.copyEmail}</span>
+            </button>
+            <span id="copy-status" role="status" className="sr-only" />
+          </div>
           <div className="mt-8 flex flex-wrap gap-3">
             <ButtonLink href={`mailto:${site.email}`} variant="primary">
               <Mail />

@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. One accent colour, light and dark themes driven only by
- * prefers-color-scheme (no JavaScript). All text pairs meet WCAG AA.
+ * Design tokens. One accent colour; all text pairs meet WCAG AA.
+ * The theme follows prefers-color-scheme. If the visitor picks one with the toggle,
+ * /js/site.js sets <html data-theme="light|dark">, which wins over the system setting.
  */
 :root {
   --bg: #fbfbfa;
@@ -16,7 +17,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0e1013;
     --surface: #171a1f;
     --fg: #e9eaec;
@@ -26,6 +27,17 @@
     --accent-soft: #1a2442;
     color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e1013;
+  --surface: #171a1f;
+  --fg: #e9eaec;
+  --muted: #a3a8b3;
+  --line: #2b3038;
+  --accent: #8fb0ff;
+  --accent-soft: #1a2442;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -101,4 +113,123 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 2px;
+}
+
+/* ---------- Interactions (all respect prefers-reduced-motion) ---------- */
+
+/* Theme toggle: show the moon in light mode, the sun in dark mode. */
+.theme-toggle .icon-sun {
+  display: none;
+}
+:root[data-theme="dark"] .theme-toggle .icon-sun {
+  display: block;
+}
+:root[data-theme="dark"] .theme-toggle .icon-moon {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-sun {
+    display: block;
+  }
+  :root:not([data-theme="light"]) .theme-toggle .icon-moon {
+    display: none;
+  }
+}
+
+/* Header menu: the section on screen (set by /js/site.js). */
+.nav-link[aria-current] {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+/* Copy-email button confirmation. */
+.copy-button[data-copied] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Cards lift slightly on hover. */
+.card {
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.card:hover {
+  border-color: color-mix(in srgb, var(--fg) 25%, transparent);
+  transform: translateY(-2px);
+}
+
+/* Blocks fade in as they scroll into view (CSS scroll-driven animations; browsers
+   without support simply show them). Disabled with reduced motion. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
+  }
+}
+
+/* Explorable Nexus diagram: hover, tap or focus a part to highlight it, animate the
+   request path and show its explanation (no JavaScript, thanks to :has()). */
+.arch .node {
+  cursor: pointer;
+  outline: none;
+}
+.arch .node .box {
+  transition:
+    stroke 0.2s ease,
+    stroke-width 0.2s ease;
+}
+.arch .node:is(:hover, :focus) .box {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.arch .node:focus-visible .box {
+  stroke-width: 3;
+}
+.arch .node[data-node="tunnel"]:focus-visible line {
+  stroke-width: 4;
+}
+@keyframes flow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+.arch:has(.node:is(:hover, :focus)) .flow {
+  stroke-dasharray: 6 4;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .arch:has(.node:is(:hover, :focus)) .flow {
+    animation: flow 0.8s linear infinite;
+  }
+}
+
+.node-cap:not([data-for="default"]) {
+  display: none;
+}
+.arch-figure:has(.node:is(:hover, :focus)) .node-cap[data-for="default"] {
+  display: none;
+}
+.arch-figure:has(.node[data-node="tunnel"]:is(:hover, :focus)) .node-cap[data-for="tunnel"],
+.arch-figure:has(.node[data-node="traefik"]:is(:hover, :focus)) .node-cap[data-for="traefik"],
+.arch-figure:has(.node[data-node="fin-engine"]:is(:hover, :focus)) .node-cap[data-for="fin-engine"],
+.arch-figure:has(.node[data-node="transcriber"]:is(:hover, :focus)) .node-cap[data-for="transcriber"],
+.arch-figure:has(.node[data-node="quiz-engine"]:is(:hover, :focus)) .node-cap[data-for="quiz-engine"],
+.arch-figure:has(.node[data-node="ads-automator"]:is(:hover, :focus)) .node-cap[data-for="ads-automator"] {
+  display: block;
 }

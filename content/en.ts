@@ -21,7 +21,9 @@ export const en: Content = {
       { href: "#skills", label: "Skills" },
       { href: "#contact", label: "Contact" },
     ],
-    switchTo: { label: "Italiano", ariaLabel: "Leggi il sito in italiano" },
+    languageLabel: "Language",
+    themeToLight: "Switch to light theme",
+    themeToDark: "Switch to dark theme",
   },
 
   hero: {
@@ -162,6 +164,20 @@ export const en: Content = {
     outbound: "outbound only",
     dnsSub: "subdomains → private IPs",
     certsSub: "certificates via DNS-01",
+    hint: "Tap, hover or tab to a part of the diagram to see what it does.",
+    nodes: {
+      tunnel:
+        "Tailscale VPN: the only way in. My laptop and phone join an encrypted WireGuard network; from the internet there is nothing to connect to.",
+      traefik:
+        "Traefik: the single entry point. It terminates HTTPS and answers 403 to any address outside the private network.",
+      "fin-engine":
+        "Fin-Engine: how much each hour on a project really earns, net of costs. Next.js dashboard, FastAPI and its own PostgreSQL.",
+      transcriber:
+        "Transcriber: a voice note sent on Telegram comes back as text. The bot only connects outwards, so no port is open for it.",
+      "quiz-engine": "Quiz-Engine: AI-generated quizzes and spaced repetition for studying, with its own PostgreSQL.",
+      "ads-automator":
+        "Ads Automator, in development: reads each client's Google Ads metrics through OAuth2, with refresh tokens encrypted at rest.",
+    },
   },
 
   projects: {
@@ -273,6 +289,8 @@ export const en: Content = {
     repoButton: "This site on GitHub",
     cvButton: "Download CV",
     linkedinButton: "LinkedIn",
+    copyEmail: "Copy address",
+    copied: "Copied",
   },
 
   footer: {

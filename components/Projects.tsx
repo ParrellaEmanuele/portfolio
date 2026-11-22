@@ -10,7 +10,7 @@ export function Projects({ c }: { c: Content }) {
         {projects.map((p) => {
           const item = t.items[p.id];
           return (
-            <li key={p.id} className="flex flex-col rounded-xl border border-line p-5 sm:p-6">
+            <li key={p.id} className="card reveal flex flex-col rounded-xl border border-line p-5 sm:p-6">
               {p.image ? (
                 <div className="mb-6">
                   <Screenshot src={p.image} alt={item.imageAlt} />

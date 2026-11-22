@@ -9,6 +9,9 @@ import type { ClientSiteId, ModuleId, ProjectId } from "./shared";
 
 export type Locale = "en" | "it";
 
+/** Parts of the Nexus diagram that can be hovered or focused. */
+export type DiagramNode = "tunnel" | "traefik" | "fin-engine" | "transcriber" | "quiz-engine" | "ads-automator";
+
 type Item = { title: string; text: string };
 /** Fixed-length lists keep both languages in step. */
 type Three<T> = [T, T, T];
@@ -25,8 +28,11 @@ export type Content = {
     label: string;
     skip: string;
     links: { href: `#${string}`; label: string }[];
-    /** Link to the same page in the other language. */
-    switchTo: { label: string; ariaLabel: string };
+    /** Accessible name of the EN | IT language switch. */
+    languageLabel: string;
+    /** Theme toggle (shown only when JavaScript runs). */
+    themeToLight: string;
+    themeToDark: string;
   };
 
   hero: {
@@ -79,6 +85,10 @@ export type Content = {
     outbound: string;
     dnsSub: string;
     certsSub: string;
+    /** Shown under the diagram until a part is hovered or focused. */
+    hint: string;
+    /** What each interactive part of the diagram does. */
+    nodes: Record<DiagramNode, string>;
   };
 
   projects: {
@@ -121,6 +131,9 @@ export type Content = {
     repoButton: string;
     cvButton: string;
     linkedinButton: string;
+    /** "Copy address" button (shown only when JavaScript runs) and its confirmation. */
+    copyEmail: string;
+    copied: string;
   };
 
   footer: { location: string; privacy: string };

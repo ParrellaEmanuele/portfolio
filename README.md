@@ -1,10 +1,10 @@
 # emanueleparrella.dev
 
 Personal portfolio of Emanuele Parrella: a one-page static site in English (`/`) and Italian (`/it`),
-built with Next.js (App Router, TypeScript) and Tailwind CSS, exported as plain HTML + CSS and hosted on Vercel.
+built with Next.js (App Router, TypeScript) and Tailwind CSS, exported as static HTML + CSS (plus one small script of our own) and hosted on Vercel.
 
 - No cookies, analytics, third-party fonts or scripts at runtime (fonts are self-hosted by `next/font`).
-- Strict security headers in [`vercel.json`](vercel.json), including a Content-Security-Policy with `script-src 'none'`.
+- Strict security headers in [`vercel.json`](vercel.json), including a Content-Security-Policy with `script-src 'self'` and no inline scripts.
 - Light and dark theme from `prefers-color-scheme`, responsive from 360 px, `prefers-reduced-motion` respected.
 
 ## Requirements
@@ -40,7 +40,7 @@ lib/seo.ts                 metadata per language: canonical, hreflang, og:locale
 components/HomePage.tsx    the page = the sections in order, rendered once per language
 components/                one component per section, plus ui.tsx (shared bits) and icons.tsx
 components/ArchitectureDiagram.tsx   hand-drawn SVG of Project Nexus (no IPs or hostnames), labels translated
-public/                    static files served as-is (CV, screenshots)
+public/                    static files served as-is (CV, screenshots, js/site.js)
 scripts/postbuild.mjs      removes the unused JavaScript from out/ and checks the CSP (see below)
 scripts/serve.mjs          local preview server
 scripts/images.mjs         screenshot conversion (sharp)
@@ -103,34 +103,43 @@ git commit -am "Update CV" && git push
 Keep the same file name so the existing links keep working. Vercel serves static files with
 revalidation, so the new PDF is live as soon as the deploy finishes.
 
-## Zero JavaScript and Content-Security-Policy
+## One small script and the Content-Security-Policy
 
-Every section is rendered to HTML at build time and nothing on the page needs client-side code (the theme
-follows `prefers-color-scheme` in CSS). So `scripts/postbuild.mjs`, run at the end of `npm run build`,
-removes the React runtime that Next.js adds for hydration: the site ships as **pure HTML + CSS**.
-The JSON-LD block stays, because it is data and is never executed.
+Every section is rendered to HTML at build time, so `scripts/postbuild.mjs` (run at the end of
+`npm run build`) removes the React runtime that Next.js adds for hydration: about 600 KB of JavaScript and
+every inline script. What remains:
 
-This allows the strictest policy, sent from `vercel.json`:
+- **`public/js/site.js`**, the site's only script (~3 KB, no dependencies), loaded from this origin:
+  theme toggle (remembered in `localStorage`), "copy address" next to the email, and the header menu
+  highlighting the section on screen. All of it is progressive enhancement: the buttons are `hidden`
+  in the HTML and the script reveals them, so without JavaScript the page is complete and nothing is broken.
+  It is loaded in `<head>` on purpose, so a saved theme is applied before the first paint.
+- **CSS-only interactions:** the Nexus diagram is explorable (hover, tap or Tab to a part: it is
+  highlighted, the request path animates and its explanation appears, via `:has()`); blocks fade in on
+  scroll with CSS scroll-driven animations; all motion is off with `prefers-reduced-motion`.
+- The JSON-LD block, which is data and is never executed.
+
+The policy, sent from `vercel.json`, allows scripts only from this origin: no inline code, no `eval`.
 
 ```
-default-src 'none'; script-src 'none'; style-src 'self'; img-src 'self'; font-src 'self';
+default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self';
 connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
 ```
 
-`connect-src 'self'` only exists so audit tools such as Lighthouse can fetch `robots.txt` from the page;
-with no scripts on the page, nothing else can use it.
+The post-build step fails the build if anything executable other than `/js/site.js` is left in the HTML
+(inline script, another `src`, an `on*` handler) or if `script-src` is anything but `'self'`.
 
-Why not keep the scripts and allow them by hash? Next.js inline scripts are not byte-identical between a
-Windows and a Linux build, so hashes computed locally do not match Vercel's build. The post-build step
-fails the build if any executable script is left in the HTML or if the CSP stops forbidding scripts.
+`connect-src 'self'` exists so audit tools such as Lighthouse can fetch `robots.txt` from the page.
 
-**If you ever add interactivity** (a client component), the post-build step will strip it: you would need
-to drop the step and move to a nonce- or hash-based CSP generated on the build machine.
+Why strip Next's scripts instead of allowing them by hash? They are not byte-identical between a Windows and
+a Linux build, so hashes computed locally do not match Vercel's build. **To add more interactivity**, extend
+`public/js/site.js` (plain JavaScript, no inline handlers); a React client component would be stripped.
 
 ## Languages and SEO
 
 - English at `/` (the CV links there), Italian at `/it`. Each has its own root layout, so `<html lang>` is right.
-- The header has a plain link to the other language (no JavaScript). Section ids are identical, so
+- The header has an `EN | IT` switch made of plain links (no JavaScript); the current language is marked
+  `aria-current`. Section ids are identical, so
   `/#work` and `/it#work` are the same section.
 - Each page declares its canonical URL and `hreflang` alternates (`en`, `it`, `x-default` → English);
   `sitemap.xml` lists both URLs with alternates. Title, description, `og:locale` and the Open Graph image

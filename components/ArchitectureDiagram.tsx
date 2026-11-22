@@ -2,8 +2,13 @@
  * Project Nexus architecture, drawn by hand as inline SVG.
  * Colours come from the CSS theme tokens, so it follows light/dark mode.
  * Deliberately generic: no IPs, hostnames or other sensitive details.
+ *
+ * Interactive without JavaScript: the main parts are focusable groups (.node).
+ * Hovering, tapping or tabbing to one highlights it, animates the request path and
+ * shows its explanation under the diagram (CSS :has(), see globals.css).
  */
-import type { Content } from "@/content/types";
+import type { ReactNode } from "react";
+import type { Content, DiagramNode } from "@/content/types";
 
 type BoxProps = {
   x: number;
@@ -17,6 +22,7 @@ type BoxProps = {
 function Box({ x, y, w, h, dashed, fill = "var(--bg)" }: BoxProps) {
   return (
     <rect
+      className="box"
       x={x + 0.5}
       y={y + 0.5}
       width={w - 1}
@@ -30,6 +36,15 @@ function Box({ x, y, w, h, dashed, fill = "var(--bg)" }: BoxProps) {
   );
 }
 
+/** A focusable, explained part of the diagram. */
+function Node({ id, label, children }: { id: DiagramNode; label: string; children: ReactNode }) {
+  return (
+    <g className="node" data-node={id} tabIndex={0} role="img" aria-label={label}>
+      {children}
+    </g>
+  );
+}
+
 type ServiceProps = {
   x: number;
   y: number;
@@ -37,11 +52,13 @@ type ServiceProps = {
   stack: string;
   pill: string;
   dashed?: boolean;
+  id: DiagramNode;
+  label: string;
 };
 
-function Service({ x, y, name, stack, pill, dashed }: ServiceProps) {
+function Service({ x, y, name, stack, pill, dashed, id, label }: ServiceProps) {
   return (
-    <g>
+    <Node id={id} label={label}>
       <Box x={x} y={y} w={148} h={92} dashed={dashed} />
       <text x={x + 12} y={y + 23} className="t-title">
         {name}
@@ -53,7 +70,7 @@ function Service({ x, y, name, stack, pill, dashed }: ServiceProps) {
       <text x={x + 21} y={y + 72} className="t-mono">
         {pill}
       </text>
-    </g>
+    </Node>
   );
 }
 
@@ -61,8 +78,9 @@ export function ArchitectureDiagram({ d }: { d: Content["diagram"] }) {
   return (
     <svg
       viewBox="0 0 360 652"
-      role="img"
-      aria-labelledby="nexus-diagram-title nexus-diagram-desc"
+      role="group"
+      aria-labelledby="nexus-diagram-title"
+      aria-describedby="nexus-diagram-desc"
       className="arch h-auto w-full"
     >
       <title id="nexus-diagram-title">{d.title}</title>
@@ -92,11 +110,15 @@ export function ArchitectureDiagram({ d }: { d: Content["diagram"] }) {
       <text x={206} y={43} className="t-small">{d.internetSub}</text>
 
       {/* Allowed path: Tailscale */}
-      <line x1={84} y1={58} x2={84} y2={136} stroke="var(--accent)" strokeWidth={2} markerEnd="url(#arrow-accent)" />
-      <text x={96} y={94} className="t-label t-accent">
-        Tailscale VPN
-      </text>
-      <text x={96} y={110} className="t-small">{d.tunnelSub}</text>
+      <Node id="tunnel" label={d.nodes.tunnel}>
+        {/* Invisible hit area so the thin line is easy to hover or tap. */}
+        <rect x={64} y={62} width={124} height={70} fill="transparent" />
+        <line className="flow" x1={84} y1={58} x2={84} y2={136} stroke="var(--accent)" strokeWidth={2} markerEnd="url(#arrow-accent)" />
+        <text x={96} y={94} className="t-label t-accent">
+          Tailscale VPN
+        </text>
+        <text x={96} y={110} className="t-small">{d.tunnelSub}</text>
+      </Node>
 
       {/* Blocked path: internet */}
       <line x1={276} y1={58} x2={276} y2={120} stroke="var(--muted)" strokeWidth={1.25} strokeDasharray="3 4" />
@@ -107,10 +129,12 @@ export function ArchitectureDiagram({ d }: { d: Content["diagram"] }) {
       <text x={14} y={161} className="t-mono t-muted">{d.host}</text>
 
       {/* Traefik */}
-      <Box x={14} y={172} w={332} h={64} />
-      <text x={28} y={197} className="t-title">{d.traefik}</text>
-      <text x={28} y={217} className="t-small">{d.traefikSub}</text>
-      <line x1={180} y1={236} x2={180} y2={258} stroke="var(--accent)" strokeWidth={2} markerEnd="url(#arrow-accent)" />
+      <Node id="traefik" label={d.nodes.traefik}>
+        <Box x={14} y={172} w={332} h={64} />
+        <text x={28} y={197} className="t-title">{d.traefik}</text>
+        <text x={28} y={217} className="t-small">{d.traefikSub}</text>
+      </Node>
+      <line className="flow" x1={180} y1={236} x2={180} y2={258} stroke="var(--accent)" strokeWidth={2} markerEnd="url(#arrow-accent)" />
 
       {/* Internal network with the services */}
       <rect
@@ -126,10 +150,10 @@ export function ArchitectureDiagram({ d }: { d: Content["diagram"] }) {
       />
       <text x={26} y={282} className="t-mono t-muted">{d.network}</text>
 
-      <Service x={26} y={292} name="Fin-Engine" stack="Next.js · FastAPI" pill={d.ownPostgres} />
-      <Service x={186} y={292} name="Transcriber" stack="FastAPI · FFmpeg" pill={d.telegramBot} />
-      <Service x={26} y={396} name="Quiz-Engine" stack="FastAPI · PWA" pill={d.ownPostgres} />
-      <Service x={186} y={396} name="Ads Automator" stack={d.inDevelopment} pill={d.encryptedSqlite} dashed />
+      <Service id="fin-engine" label={d.nodes["fin-engine"]} x={26} y={292} name="Fin-Engine" stack="Next.js · FastAPI" pill={d.ownPostgres} />
+      <Service id="transcriber" label={d.nodes.transcriber} x={186} y={292} name="Transcriber" stack="FastAPI · FFmpeg" pill={d.telegramBot} />
+      <Service id="quiz-engine" label={d.nodes["quiz-engine"]} x={26} y={396} name="Quiz-Engine" stack="FastAPI · PWA" pill={d.ownPostgres} />
+      <Service id="ads-automator" label={d.nodes["ads-automator"]} x={186} y={396} name="Ads Automator" stack={d.inDevelopment} pill={d.encryptedSqlite} dashed />
 
       {/* Hardening note */}
       <text x={180} y={530} textAnchor="middle" className="t-small">{d.hardening[0]}</text>

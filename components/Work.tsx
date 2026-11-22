@@ -38,7 +38,7 @@ export function Work({ c }: { c: Content }) {
 
       <ol className="mt-10 grid gap-8 md:grid-cols-3 md:gap-6">
         {t.gets.map((g, i) => (
-          <li key={g.title} className="border-t-2 border-fg pt-4">
+          <li key={g.title} className="reveal border-t-2 border-fg pt-4">
             <span aria-hidden className="font-mono text-sm text-accent">
               {String(i + 1).padStart(2, "0")}
             </span>
@@ -51,7 +51,7 @@ export function Work({ c }: { c: Content }) {
       {withImage.length > 0 ? (
         <ul className="mt-14 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {withImage.map((s) => (
-            <li key={s.id}>
+            <li key={s.id} className="reveal">
               <Screenshot src={s.image!} alt={t.imageAlt.replace("{name}", s.name)} />
               <h3 className="mt-4 font-semibold">{s.name}</h3>
               <p className="mt-1 text-sm leading-relaxed text-muted">{t.sectors[s.id]}</p>
@@ -64,7 +64,7 @@ export function Work({ c }: { c: Content }) {
       {textOnly.length > 0 ? (
         <ul className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {textOnly.map((s) => (
-            <li key={s.id} className="flex flex-col rounded-xl border border-line p-5">
+            <li key={s.id} className="card reveal flex flex-col rounded-xl border border-line p-5">
               <h3 className="font-semibold">{s.name}</h3>
               <p className="mt-1 text-sm leading-relaxed text-muted">{t.sectors[s.id]}</p>
               <div className="mt-auto pt-2">

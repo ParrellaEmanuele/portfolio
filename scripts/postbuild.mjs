@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 /**
- * Post-build step: ship the exported site as pure HTML + CSS, with zero JavaScript.
+ * Post-build step: ship the exported site as HTML + CSS plus ONE small script of ours.
  *
- * Every section is rendered to static HTML at build time and the site has no
- * client-side interactivity (the theme follows prefers-color-scheme in CSS), so
- * the React runtime that Next.js adds for hydration is dead weight. Removing it:
+ * Every section is rendered to static HTML at build time, so the React runtime that
+ * Next.js adds for hydration is dead weight. Removing it:
  *
- *   - allows the strictest Content-Security-Policy, `script-src 'none'`, as a fixed
- *     string in vercel.json (inline-script hashes differ between Windows and Linux
- *     builds, so a hash-based policy cannot be precomputed reliably);
- *   - removes ~600 KB of JavaScript from the page.
+ *   - removes ~600 KB of JavaScript and every inline script, which allows a strict,
+ *     fixed CSP in vercel.json: `script-src 'self'`, no 'unsafe-inline', no hashes
+ *     (inline-script hashes differ between Windows and Linux builds anyway);
+ *   - leaves only /js/site.js (public/js/site.js): theme toggle, copy-email and the
+ *     active menu item, all progressive enhancements.
  *
- * JSON-LD blocks (type="application/ld+json") are kept: they are data, never executed.
- * The script then verifies the result and fails the build if anything executable is left.
+ * Kept: JSON-LD blocks (type="application/ld+json": data, never executed) and the
+ * external <script src="/js/site.js">. The build fails if anything else executable
+ * (inline script, other src, on* handler) is left, or if the CSP gets weaker.
  *
  * Usage: node scripts/postbuild.mjs   (runs automatically in `npm run build`)
  */
@@ -20,6 +21,7 @@ import { readFileSync, readdirSync, rmSync, rmdirSync, writeFileSync } from "nod
 import { join } from "node:path";
 
 const OUT_DIR = "out";
+const ALLOWED_SCRIPT = "/js/site.js";
 
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -29,26 +31,30 @@ function walk(dir) {
 }
 
 const files = walk(OUT_DIR);
-const SCRIPT_TAG = /<script\b([^>]*)>[\s\S]*?<\/script>/g;
+const SCRIPT_TAG = /<script\b([^>]*)>([\s\S]*?)<\/script>/g;
 const SCRIPT_PRELOAD = /<link\b[^>]*\b(?:as="script"|rel="modulepreload")[^>]*\/?>/g;
-const isJsonLd = (attrs) => /type="application\/ld\+json"/.test(attrs);
+
+const isJsonLd = (attrs) => attrs.includes('type="application/ld+json"');
+const isOwnScript = (attrs, body) => body.trim() === "" && attrs.includes(`src="${ALLOWED_SCRIPT}"`);
+const keep = (attrs, body) => isJsonLd(attrs) || isOwnScript(attrs, body);
 
 let removed = 0;
 for (const file of files.filter((f) => f.endsWith(".html"))) {
   const html = readFileSync(file, "utf8");
   const stripped = html
-    .replace(SCRIPT_TAG, (tag, attrs) => (isJsonLd(attrs) ? tag : (removed++, "")))
+    .replace(SCRIPT_TAG, (tag, attrs, body) => (keep(attrs, body) ? tag : (removed++, "")))
     .replace(SCRIPT_PRELOAD, () => (removed++, ""));
 
-  const leftover = [...stripped.matchAll(SCRIPT_TAG)].filter(([, attrs]) => !isJsonLd(attrs));
-  if (leftover.length > 0 || /\son[a-z]+=/i.test(stripped.replace(/<script[\s\S]*?<\/script>/g, ""))) {
-    console.error(`postbuild: executable script left in ${file}`);
+  const leftover = [...stripped.matchAll(SCRIPT_TAG)].filter(([, attrs, body]) => !keep(attrs, body));
+  const markup = stripped.replace(SCRIPT_TAG, "");
+  if (leftover.length > 0 || /\son[a-z]+=/i.test(markup)) {
+    console.error(`postbuild: unexpected executable script left in ${file}`);
     process.exit(1);
   }
   writeFileSync(file, stripped);
 }
 
-// The JS chunks and RSC payloads are no longer referenced by any page.
+// The Next.js JS chunks and RSC payloads are no longer referenced by any page.
 let deleted = 0;
 for (const file of files) {
   const isChunk = file.includes(join("_next", "static")) && file.endsWith(".js");
@@ -68,14 +74,15 @@ function removeEmptyDirs(dir) {
 }
 removeEmptyDirs(OUT_DIR);
 
-// The deployed CSP must forbid scripts entirely.
+// The deployed CSP must allow scripts only from this origin: no inline, no eval.
 const config = JSON.parse(readFileSync("vercel.json", "utf8"));
 const csp = config.headers
   ?.flatMap((rule) => rule.headers)
   .find((h) => h.key === "Content-Security-Policy")?.value;
-if (!csp?.includes("script-src 'none'")) {
-  console.error("postbuild: vercel.json must send a CSP with script-src 'none'");
+const scriptSrc = csp?.match(/script-src ([^;]*)/)?.[1].trim();
+if (scriptSrc !== "'self'") {
+  console.error(`postbuild: vercel.json must send exactly script-src 'self' (found: ${scriptSrc})`);
   process.exit(1);
 }
 
-console.log(`postbuild: removed ${removed} script tags, deleted ${deleted} unused files; CSP ok`);
+console.log(`postbuild: removed ${removed} Next.js script tags, deleted ${deleted} unused files; CSP ok`);

@@ -13,6 +13,11 @@ export const metadata: Metadata = {
 export default function GlobalNotFound() {
   return (
     <html lang="en" className={`${fontClasses} antialiased`}>
+      <head>
+        {/* Same script as the main pages, so a theme chosen with the toggle applies here too. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts -- tiny, must run before paint */}
+        <script src="/js/site.js" />
+      </head>
       <body className="min-h-dvh font-sans">
         <main id="main" className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col justify-center gap-12 px-4 sm:px-6">
           <section>
